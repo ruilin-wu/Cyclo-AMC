@@ -65,7 +65,7 @@ cd CycloAMC_AIEML
 make all
 ```
 
-This command builds the full AI Engine project for Cyclo-AMC.
+This command builds the full AIE-ML project for Cyclo-AMC.
 
 ---
 
