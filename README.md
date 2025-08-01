@@ -1,8 +1,3 @@
-当然，以下是**你可以直接复制粘贴使用的高质量 README.md** 内容（使用 Markdown 格式，保留所有原意，仅做语法和排版优化）：
-
----
-
-````markdown
 # Versal-based Implementation of Cyclo-AMC
 
 By default, this project targets the `xcve2802-vsvh1760-2MP-e-S` platform for VEK280.
