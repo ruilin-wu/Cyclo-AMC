@@ -1,46 +1,47 @@
 #
 # AMD AIE FFT Example Makefile
 #
-# 该 Makefile 参考了用户给出的 ConvNet 版本, 并根据 aie-fft/src 目录中的 FFT 源文件进行简化调整。
+# This Makefile is adapted from the user's ConvNet version, 
+# simplified for the FFT source files in aie-fft/src directory.
 #
 # Author: AI Assistant
 ################################################################################
-# 可配变量
+# Configurable variables
 ################################################################################
-# 仅进行 AIE 仿真(不生成硬件映像)
+# AIE simulation only (no hardware image generation)
 AIE_SIM_ONLY ?= false
-# 打开 FIFO 深度检查
+# Enable FIFO depth checking
 SIM_FIFO     ?= false
 
 ################################################################################
-# 源文件与目录
+# Source files and directories
 ################################################################################
 SRC_DIR   := src
 MY_APP    := test_ssrfft_1m
 
-# 头文件搜索路径（含 src/funcs 与 src/fam_kernels）
+# Include paths (including src/funcs and src/fam_kernels)
 USER_INCLUDES := --include=$(CURDIR)/$(SRC_DIR) \
                  --include=$(CURDIR)/$(SRC_DIR)/funcs \
                  --include=$(CURDIR)/$(SRC_DIR)/fam_kernels \
 				 --include=$(CURDIR)/$(SRC_DIR)/nn_kernels
 
-# 主源文件 (使用绝对路径)
+# Main source file (absolute path)
 MY_SOURCES := $(CURDIR)/$(SRC_DIR)/test_ssrfft_1m.cpp
 
 ################################################################################
-# 生成目录与产物
+# Output directories and files
 ################################################################################
-BUILD_DIR := build.hw              # ← 目标输出目录（与 src 同级）
+BUILD_DIR := build.hw              # ← Output directory (same level as src)
 AIE_OUTPUT := $(BUILD_DIR)/libadf.a
 
 ################################################################################
-# 平台信息
+# Platform info
 ################################################################################
 PLATFORM_USE := xilinx_vek280_base_202420_1
 PLATFORM ?= $(PLATFORM_REPO_PATHS)/$(PLATFORM_USE)/$(PLATFORM_USE).xpfm
 
 ################################################################################
-# 编译选项
+# Compilation options
 ################################################################################
 CHECK_FIFO := --aie.evaluate-fifo-depth --aie.Xrouter=disablePathBalancing
 
@@ -59,30 +60,30 @@ ifeq ($(AIE_SIM_ONLY), true)
 endif
 
 ################################################################################
-# 通用伪目标
+# Common phony targets
 ################################################################################
 .PHONY: help clean all compile sim sim1 x86sim profile trace analyze summary
 
 help::
 	@echo "Makefile Usage:"
-	@echo "  make all       : 编译并生成 libadf.a"
-	@echo "  make sim       : 运行 AIE 仿真器 (带 profile+VCD)"
-	@echo "  make sim1      : 运行 AIE 仿真器 (纯功能仿真)"
-	@echo "  make x86sim    : 运行功能级 x86 仿真"
-	@echo "  make profile   : 同 sim"
-	@echo "  make trace     : 同 sim (已含 VCD)"
-	@echo "  make analyze   : 打开 Vitis Analyzer"
-	@echo "  make summary   : 查看编译摘要"
-	@echo "  make clean     : 清理生成文件"
+	@echo "  make all       : Compile and generate libadf.a"
+	@echo "  make sim       : Run AIE simulator (with profile + VCD)"
+	@echo "  make sim1      : Run AIE simulator (functional only)"
+	@echo "  make x86sim    : Run x86 functional simulator"
+	@echo "  make profile   : Same as sim"
+	@echo "  make trace     : Same as sim (includes VCD)"
+	@echo "  make analyze   : Open Vitis Analyzer"
+	@echo "  make summary   : View compilation summary"
+	@echo "  make clean     : Clean up generated files"
 
 ################################################################################
-# 目标定义
+# Target definitions
 ################################################################################
 all: $(AIE_OUTPUT)
 compile: $(AIE_OUTPUT)
 
 #---------------------------------------------------------------------------#
-# 编译 AIE
+# Compile AIE
 #---------------------------------------------------------------------------#
 $(AIE_OUTPUT): $(MY_SOURCES)
 	@mkdir -p $(BUILD_DIR)
@@ -92,7 +93,7 @@ $(AIE_OUTPUT): $(MY_SOURCES)
 	        --aie.output-archive=libadf.a \
 	  2>&1 | tee -a ../log )
 #---------------------------------------------------------------------------#
-# AIE 仿真
+# AIE simulation
 #---------------------------------------------------------------------------#
 sim: 
 	@cp -r $(SRC_DIR)/data_input $(BUILD_DIR)
@@ -107,7 +108,7 @@ sim1:
 	  2>&1 | tee -a ../log )
 
 #---------------------------------------------------------------------------#
-# x86 仿真
+# x86 simulation
 #---------------------------------------------------------------------------#
 x86sim:
 	@mkdir -p $(BUILD_DIR)
@@ -115,7 +116,7 @@ x86sim:
 	x86simulator 2>&1 | tee -a log
 
 #---------------------------------------------------------------------------#
-# 其他工具快捷方式
+# Tool shortcuts
 #---------------------------------------------------------------------------#
 profile: sim
 trace:   sim
@@ -124,9 +125,8 @@ summary1:
 summary:
 	vitis_analyzer $(BUILD_DIR)/Work/$(MY_APP).aiecompile_summary
 
-
 ################################################################################
-# 清理
+# Cleanup
 ################################################################################
 clean:
 	rm -rf .Xil Work build.hw log log* aiesimulator_output* aiesimulator*.log \

@@ -14,27 +14,14 @@ using namespace adf;
 #include "fam_funcs.h"
 #include "parameters.h"
 
-
-// ------------------------------------------------------------
-// Constructor
-// ------------------------------------------------------------
-
+//------------------------------------------------------------
 fam_stage2_2::fam_stage2_2(int xoff) : m_xoff(xoff) 
 {
     aie::set_rounding(aie::rounding_mode::symmetric_inf);
     aie::set_saturation(aie::saturation_mode::saturate);
 }
 
-// ------------------------------------------------------------
-// Run
-// ------------------------------------------------------------
-
-// ① 头文件不变
-
 //------------------------------------------------------------
-// Run
-//------------------------------------------------------------
-
 #include <aie_api/aie.hpp>
 #include <aie_api/aie_adf.hpp>
 void fam_stage2_2::run(
@@ -43,8 +30,8 @@ void fam_stage2_2::run(
 {
     using vec32 = aie::vector<cbfloat16, 32>;
 
-    const int pick_idx = m_xoff - 1;  // m_xoff = 1…64 → pick_idx = 0…63
-    vec32 input0,input1,input2,input3;                      // 用于保存选中的向量
+    const int pick_idx = m_xoff - 1;
+    vec32 input0,input1,input2,input3;
 
     for (int blk = 0; blk < 64; ++blk)
     chess_prepare_for_pipelining
@@ -53,27 +40,25 @@ void fam_stage2_2::run(
         vec32 vin = readincr_v<32>(sin);
 
         if (blk == pick_idx) {
-            input0 = vin; // 保留为 input0
+            input0 = vin;
         }
         if (blk == pick_idx+1) {
-            input1 = vin; // 保留为 input0
+            input1 = vin;
         }
         if (blk == pick_idx+2) {
-            input2 = vin; // 保留为 input0
+            input2 = vin;
         }
         if (blk == pick_idx+3) {
-            input3 = vin; // 保留为 input0
+            input3 = vin;
         }
     }
-    constexpr bfloat16 ALPHA = 6.93232e-05;   // 1/(std_train+1e-5)
-    constexpr bfloat16 BETA  = -0.296705;    // –mean_train*ALPHA
+    constexpr bfloat16 ALPHA = 6.93232e-05;
+    constexpr bfloat16 BETA  = -0.296705;
 
-    // 写入 output buffer，只写一次
     bfloat16* outptr0 = bout.data();
-    bfloat16* outptr1 = outptr0 + 64;        // [64 … 127]
-    bfloat16* outptr2 = outptr0 + 128;        // [64 … 127]
-    bfloat16* outptr3 = outptr0 + 192;        // [64 … 127]
-    //*reinterpret_cast<vec32*>(outptr) = input0;
+    bfloat16* outptr1 = outptr0 + 64;
+    bfloat16* outptr2 = outptr0 + 128;
+    bfloat16* outptr3 = outptr0 + 192;
 
     alignas(aie::vector_decl_align) cbfloat16 xbufA[32];
     alignas(aie::vector_decl_align) cbfloat16 xbufB[32];
@@ -82,32 +67,26 @@ void fam_stage2_2::run(
 
     for (int i = 0; i < 64; i++)  
     chess_prepare_for_pipelining chess_loop_range(1,)  
-        {   /* ① 每次循环仅读取一次 conjugate */
+    {
         vec32 conjugate = readincr_v<32>(sin);
 
-        /* ② 计算四路输入向量（共享 conjugate） */
         vec32 v_in0 = aie::mul(input0, aie::conj(conjugate));
         vec32 v_in1 = aie::mul(input1, aie::conj(conjugate));
         vec32 v_in2 = aie::mul(input2, aie::conj(conjugate));
         vec32 v_in3 = aie::mul(input3, aie::conj(conjugate));
 
-        /* ③ Ping‑Pong 方式复用两套缓冲区执行四次 FFT */
-        // --- 第 1/4 次 ---
         aie::store_v(xbufA, v_in0);
         fft32_cfloat(xbufA, ybufA);
         *outptr0++ = aie::add(aie::mul(aie::abs_square(ybufA[8]), ALPHA), BETA);
 
-        // --- 第 2/4 次 ---
         aie::store_v(xbufB, v_in1);
         fft32_cfloat(xbufB, ybufB);
         *outptr1++ = aie::add(aie::mul(aie::abs_square(ybufB[8]), ALPHA), BETA);
 
-        // --- 第 3/4 次（复用 A） ---
         aie::store_v(xbufA, v_in2);
         fft32_cfloat(xbufA, ybufA);
         *outptr2++ = aie::add(aie::mul(aie::abs_square(ybufA[8]), ALPHA), BETA);
 
-        // --- 第 4/4 次（复用 B） ---
         aie::store_v(xbufB, v_in3);
         fft32_cfloat(xbufB, ybufB);
         *outptr3++ = aie::add(aie::mul(aie::abs_square(ybufB[8]), ALPHA), BETA);

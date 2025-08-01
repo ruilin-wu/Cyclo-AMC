@@ -19,7 +19,7 @@ public:
 
   // Run:
   void run(
-        adf::input_buffer<bfloat16, adf::extents<1152>>& wbuf,
+        adf::input_buffer<bfloat16, adf::extents<2304>>& wbuf,
         input_stream<bfloat16>*                         sin ,
         adf::output_buffer<bfloat16, adf::extents<512>>& buf);
 

@@ -32,16 +32,11 @@ void broad_cast::run(
     input_buffer <cbfloat16, adf::extents<512>>& __restrict in1,
     input_buffer <cbfloat16, adf::extents<512>>& __restrict in2,
     input_buffer <cbfloat16, adf::extents<512>>& __restrict in3,
-    output_stream<cbfloat16>* __restrict           out      )   // ★ 指针
+    output_stream<cbfloat16>* __restrict           out      )   
 {
     using vec8 = aie::vector<cbfloat16, 8>;
 
-   
-    //constexpr int START_PACK   = 95;   // 0..11 为左边 96 列
-    constexpr int CENTER_PACKS = 64;   // 96..159 共 64×vec8 = 512 元素
-    
-
-
+    constexpr int CENTER_PACKS = 64; 
     for (int rep = 0; rep < 1; ++rep)
     {
         const vec8* __restrict p0 =
@@ -57,7 +52,7 @@ void broad_cast::run(
         chess_prepare_for_pipelining
         chess_loop_range(1,)
         {
-            writeincr(out, *p0++);   // ★ 传指针
+            writeincr(out, *p0++);   
             writeincr(out, *p1++);
             writeincr(out, *p2++);
             writeincr(out, *p3++);
@@ -79,7 +74,7 @@ void broad_cast::run(
         chess_prepare_for_pipelining
         chess_loop_range(1,)
         {
-            writeincr(out, *p0++);   // ★ 传指针
+            writeincr(out, *p0++);   
             writeincr(out, *p1++);
             writeincr(out, *p2++);
             writeincr(out, *p3++);
