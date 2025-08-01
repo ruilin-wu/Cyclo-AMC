@@ -20,7 +20,7 @@ cd DNN
 ````
 
 Download the **CSPB.ML.2022 dataset** from the official website:
-👉 [https://cyclostationary.blog/data-sets/](https://cyclostationary.blog/data-sets/)
+[https://cyclostationary.blog/data-sets/](https://cyclostationary.blog/data-sets/)
 
 Store the downloaded `.tim` files in the `CSPB_ML_2022_Data` folder.
 
@@ -78,4 +78,3 @@ make summary
 
 This command outputs mapping summaries for the AIE-ML array.
 
-```
