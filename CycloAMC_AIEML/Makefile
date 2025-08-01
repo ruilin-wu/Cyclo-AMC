@@ -1,10 +1,6 @@
 #
 # AMD AIE FFT Example Makefile
 #
-# This Makefile is adapted from the user's ConvNet version, 
-# simplified for the FFT source files in aie-fft/src directory.
-#
-# Author: AI Assistant
 ################################################################################
 # Configurable variables
 ################################################################################

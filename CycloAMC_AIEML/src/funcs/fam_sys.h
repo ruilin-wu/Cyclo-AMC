@@ -2,9 +2,6 @@
 #define __SSCA_SYS_H__
 #
 #include <adf.h>
-
-
-
 #include "parameters.h"
 #include "fam_stage1.h"
 #include "fam_stage2.h"
