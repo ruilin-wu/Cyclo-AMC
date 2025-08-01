@@ -1,0 +1,275 @@
+//
+// Copyright (C) 2024, Advanced Micro Devices, Inc. All rights reserved.
+// SPDX-License-Identifier: MIT
+//
+/*
+Check AIE-PRE-MAPPER has run: 1 error
+ERROR: [AIE-PRE-MAPPER-6] Insufficient shim routing capacity. Design has outgoing PLIO channel usage of 128 and maximum that can be routed of 112.
+AIE Initial Checker Successful
+ERROR: [aiecompiler 77-6231] ###UDM Placer Did NOT Finish Successfully
+INFO: [aiecompiler 77-6439] Run completed. Find additional information in:
+        Guidance: /home/ruilin/aie/aie-fft/build.hw/Work/reports/guidance.html
+
+INFO: [aiecompiler 77-6440] Use the vitis_analyzer tool to visualize and navigate the relevant reports. Run: 
+        vitis_analyzer /home/ruilin/aie/aie-fft/build.hw/Work/test_ssrfft_1m.aiecompile_summary
+
+Compilation Failed
+(WARNING:138, CRITICAL-WARNING:0, ERROR:1)
+*/
+#include "fam_sys.h"
+
+#define PLFreq 625 //1000MHZ
+
+using namespace adf ;
+class dut: public graph {
+public: 
+        //fam
+        
+        fam_top<3,4,0> fam_graph;
+        input_plio      input_image;
+        output_plio     fam_output[1];
+        
+
+        //layer0-stem
+        stem<7+3-1-1-3+1,0,0,0,1> stem_graph;
+        input_plio      stem_weight;
+        input_plio      stem_image; //fam_out
+        //output_plio     stem_out;
+
+        //layer1
+        layer1_block0_1memout<7+5-1-1-3+1,0,0,0,1> layer1_graph_0;
+        layer1_block0_1memout<7+3+5-1-1-3+1,0,0,0,1> layer1_graph_1;    
+        input_plio      layer1_0_conv1_weight[3];
+        input_plio      layer1_0_conv2_weight[3];
+        input_plio      layer1_0_down_weight[3];
+        input_plio      layer1_1_conv1_weight[3];
+        input_plio      layer1_1_conv2_weight[3];
+        input_plio      layer1_1_down_weight[3];
+        //input_plio      layer1_input0;
+        //output_plio     layer1_out;
+
+        //layer2
+        layer2_block0_1memout<16+2-1-1-3+1,0,0,0,1> layer2_graph_0;
+        layer2_block1_1memout<19+2-1-1-3+1,0,0,0,1> layer2_graph_1;
+        input_plio      layer2_0_conv1_weight[3];
+        input_plio      layer2_0_conv2_weight[3];
+        input_plio      layer2_0_down_weight[3];
+        input_plio      layer2_1_conv1_weight[3];
+        input_plio      layer2_1_conv2_weight[3];
+        input_plio      layer2_1_down_weight[3];
+        //input_plio      layer2_input0;
+        //output_plio     layer2_out;
+
+
+        //layer3
+        layer3_block0_1memout<24-1-1-3+1,0,0,0,1> layer3_graph_0;
+        layer3_block1_1memout<27-1-1-3+1,0,0,0,1> layer3_graph_1;
+        input_plio      layer3_0_conv1_weight[3];
+        input_plio      layer3_0_conv2_weight[3];
+        input_plio      layer3_0_down_weight[3];
+        input_plio      layer3_1_conv1_weight[3];
+        input_plio      layer3_1_conv2_weight[3];
+        input_plio      layer3_1_down_weight[3];
+        //input_plio      layer3_input0;
+        //output_plio     layer3_out;
+
+        //layer4
+        layer4_block0_1memout<27,0,0,0,1> layer4_graph_0;
+        layer4_block1_1memout<31,0,0,0,1> layer4_graph_1;
+        input_plio      layer4_0_conv1_weight_0[3];
+        input_plio      layer4_0_conv2_weight_0[3];
+        input_plio      layer4_0_conv1_weight_1[3];
+        input_plio      layer4_0_conv2_weight_1[3];
+        input_plio      layer4_0_down_weight[3];
+
+        
+        input_plio      layer4_1_conv1_weight_0[3];
+        input_plio      layer4_1_conv2_weight_0[3];
+        input_plio      layer4_1_conv1_weight_1[3];
+        input_plio      layer4_1_conv2_weight_1[3];
+        //input_plio      layer4_input0;
+        //output_plio     layer4_out;
+
+        //layer5-head
+        layer5_head_1out<34-1,0,0,0,0> head_graph;
+        //input_plio      layer5_image;
+        input_plio      layer5_weight;
+        output_plio     layer5_out;
+
+        //test
+        output_plio     layer0_test_out;
+        output_plio     layer1_test_out;
+        output_plio     layer2_test_out;
+        output_plio     layer3_test_out;
+        output_plio     layer4_test_out;
+        output_plio     layer5_test_out;
+
+    dut(){
+        ////////////////////////fam//////////////////////
+        
+        input_image = input_plio::create("input_image", plio_32_bits, "data_input/fam_in.txt", PLFreq);        
+        fam_output[0] = output_plio::create("fam_output", plio_32_bits, "data_output/fam_out.txt", PLFreq);        
+        connect<>(input_image.out[0], fam_graph.input);     
+        connect<>(fam_graph.output[0], fam_output[0].in[0]);
+        
+
+        ////////////////////////layer0//////////////////////
+        {
+        stem_image = input_plio::create("stem_image", plio_32_bits, "data_input/StemDataIn.txt", PLFreq);
+        stem_weight = input_plio::create("stem_weight", plio_32_bits, "data_input/txt_weights/stem.0.txt", PLFreq);
+        //stem_out = output_plio::create("stem_out", plio_32_bits, "data_output/STEMOut.txt", PLFreq);
+        connect<>(stem_image.out[0],stem_graph.input_image[0]);
+        connect<>(stem_weight.out[0], stem_graph.input_weight[0]);
+        
+        }
+
+        ////////////////////////layer1//////////////////////
+        for ( int i = 0; i < 3; i++)
+        {
+        layer1_0_conv1_weight[i] = input_plio::create("layer1_0_conv1_weight"+ std::to_string(i), plio_32_bits, "data_input/txt_weights/weight1.txt", PLFreq);
+        layer1_0_down_weight[i] = input_plio::create("layer1_0_down_weight"+ std::to_string(i), plio_32_bits, "data_input/txt_weights/weight2.txt", PLFreq);
+        layer1_0_conv2_weight[i] = input_plio::create("layer1_0_conv2_weight"+ std::to_string(i), plio_32_bits, "data_input/txt_weights/weight2.txt", PLFreq);
+        connect<>(layer1_0_conv1_weight[i].out[0], layer1_graph_0.input_weight_0_conv1[i]);
+        connect<>(layer1_0_down_weight[i].out[0], layer1_graph_0.input_weight_0_down[i]);
+        connect<>(layer1_0_conv2_weight[i].out[0], layer1_graph_0.input_weight_0_conv2[i]);
+        }
+        for ( int i = 0; i < 3; i++)
+        {
+        layer1_1_conv1_weight[i] = input_plio::create("layer1_1_conv1_weight"+ std::to_string(i), plio_32_bits, "data_input/txt_weights/weight1.txt", PLFreq);
+        layer1_1_down_weight[i] = input_plio::create("layer1_1_down_weight"+ std::to_string(i), plio_32_bits, "data_input/txt_weights/weight2.txt", PLFreq);
+        layer1_1_conv2_weight[i] = input_plio::create("layer1_1_conv2_weight"+ std::to_string(i), plio_32_bits, "data_input/txt_weights/weight2.txt", PLFreq);
+        connect<>(layer1_1_conv1_weight[i].out[0], layer1_graph_1.input_weight_0_conv1[i]);
+        connect<>(layer1_1_down_weight[i].out[0], layer1_graph_1.input_weight_0_down[i]);
+        connect<>(layer1_1_conv2_weight[i].out[0], layer1_graph_1.input_weight_0_conv2[i]);
+        }        
+        //layer1_input0 = input_plio::create("layer1_input0", plio_32_bits, "data_input/layer1datain.txt", PLFreq);
+        //layer1_out = output_plio::create("layer1_out", plio_32_bits, "data_output/layer1_out.txt", PLFreq);        
+        connect<>(stem_graph.output[0], layer1_graph_0.input_image);
+        connect<>(layer1_graph_0.output[0],layer1_graph_1.input_image);       
+        
+
+        
+        ////////////////////////layer2//////////////////////
+        for ( int i = 0; i < 3; i++)
+        {
+        layer2_0_conv1_weight[i] = input_plio::create("layer2_0_conv1_weight"+ std::to_string(i), plio_32_bits, "data_input/txt_weights/weight1.txt", PLFreq);
+        layer2_0_down_weight[i] = input_plio::create("layer2_0_down_weight"+ std::to_string(i), plio_32_bits, "data_input/txt_weights/weight2.txt", PLFreq);
+        layer2_0_conv2_weight[i] = input_plio::create("layer2_0_conv2_weight"+ std::to_string(i), plio_32_bits, "data_input/txt_weights/weight2.txt", PLFreq);
+        connect<>(layer2_0_conv1_weight[i].out[0], layer2_graph_0.input_weight_0_conv1[i]);
+        connect<>(layer2_0_down_weight[i].out[0], layer2_graph_0.input_weight_0_down[i]);
+        connect<>(layer2_0_conv2_weight[i].out[0], layer2_graph_0.input_weight_0_conv2[i]);
+        }                        
+        for ( int i = 0; i < 3; i++)
+        {
+        layer2_1_conv1_weight[i] = input_plio::create("layer2_1_conv1_weight"+ std::to_string(i), plio_32_bits, "data_input/txt_weights/weight1.txt", PLFreq);
+        layer2_1_down_weight[i] = input_plio::create("layer2_1_down_weight"+ std::to_string(i), plio_32_bits, "data_input/txt_weights/weight2.txt", PLFreq);
+        layer2_1_conv2_weight[i] = input_plio::create("layer2_1_conv2_weight"+ std::to_string(i), plio_32_bits, "data_input/txt_weights/weight2.txt", PLFreq);
+        connect<>(layer2_1_conv1_weight[i].out[0], layer2_graph_1.input_weight_1_conv1[i]);
+        connect<>(layer2_1_down_weight[i].out[0], layer2_graph_1.input_weight_1_down[i]);
+        connect<>(layer2_1_conv2_weight[i].out[0], layer2_graph_1.input_weight_1_conv2[i]);
+        } 
+        {
+        //layer2_input0 = input_plio::create("layer2_input0", plio_32_bits, "data_input/layer2datain.txt", PLFreq);
+        //layer2_out = output_plio::create("layer2_out", plio_32_bits, "data_output/layer2_out.txt", PLFreq);         
+        //connect<>(layer2_input0.out[0], layer2_graph_0.input_image);
+        connect<>(layer1_graph_1.output[0],layer2_graph_0.input_image);      
+        connect<>(layer2_graph_0.output[0],layer2_graph_1.input_image);                      
+        }
+
+
+        ////////////////////////layer3//////////////////////
+        for ( int i = 0; i < 3; i++)
+        {
+        layer3_0_conv1_weight[i] = input_plio::create("layer3_0_conv1_weight"+ std::to_string(i), plio_32_bits, "data_input/txt_weights/weight1.txt", PLFreq);
+        layer3_0_down_weight[i] = input_plio::create("layer3_0_down_weight"+ std::to_string(i), plio_32_bits, "data_input/txt_weights/weight2.txt", PLFreq);
+        layer3_0_conv2_weight[i] = input_plio::create("layer3_0_conv2_weight"+ std::to_string(i), plio_32_bits, "data_input/txt_weights/weight2.txt", PLFreq);
+        connect<>(layer3_0_conv1_weight[i].out[0], layer3_graph_0.input_weight_0_conv1[i]);
+        connect<>(layer3_0_down_weight[i].out[0], layer3_graph_0.input_weight_0_down[i]);
+        connect<>(layer3_0_conv2_weight[i].out[0], layer3_graph_0.input_weight_0_conv2[i]);
+        } 
+        for ( int i = 0; i < 3; i++)
+        {
+        layer3_1_conv1_weight[i] = input_plio::create("layer3_1_conv1_weight"+ std::to_string(i), plio_32_bits, "data_input/txt_weights/weight1.txt", PLFreq);
+        layer3_1_down_weight[i] = input_plio::create("layer3_1_down_weight"+ std::to_string(i), plio_32_bits, "data_input/txt_weights/weight2.txt", PLFreq);
+        layer3_1_conv2_weight[i] = input_plio::create("layer3_1_conv2_weight"+ std::to_string(i), plio_32_bits, "data_input/txt_weights/weight2.txt", PLFreq);
+        connect<>(layer3_1_conv1_weight[i].out[0], layer3_graph_1.input_weight_0_conv1[i]);
+        connect<>(layer3_1_down_weight[i].out[0], layer3_graph_1.input_weight_0_down[i]);
+        connect<>(layer3_1_conv2_weight[i].out[0], layer3_graph_1.input_weight_0_conv2[i]);
+        } 
+        {
+        //layer3_input0 = input_plio::create("layer3_input0", plio_32_bits, "data_input/layer3datain.txt", PLFreq);
+        //layer3_out = output_plio::create("layer3_out", plio_32_bits, "data_output/layer3_out.txt", PLFreq);         
+        //connect<>(layer3_input0.out[0], layer3_graph_0.input_image);
+        connect<>(layer2_graph_1.output[0], layer3_graph_0.input_image);      
+        connect<>(layer3_graph_0.output[0],layer3_graph_1.input_image);    
+              
+        }     
+
+        ////////////////////////layer4//////////////////////
+        for ( int i = 0; i < 3; i++)
+        {
+        layer4_0_conv1_weight_0[i] = input_plio::create("layer4_0_conv1_weight_0"+ std::to_string(i), plio_32_bits, "data_input/txt_weights/weight1.txt", PLFreq);
+        layer4_0_conv1_weight_1[i] = input_plio::create("layer4_0_conv1_weight_1"+ std::to_string(i), plio_32_bits, "data_input/txt_weights/weight1.txt", PLFreq);
+        layer4_0_down_weight[i] = input_plio::create("layer4_0_down_weight"+ std::to_string(i), plio_32_bits, "data_input/txt_weights/weight2.txt", PLFreq);
+        layer4_0_conv2_weight_0[i] = input_plio::create("layer4_0_conv2_weight_0"+ std::to_string(i), plio_32_bits, "data_input/txt_weights/weight2.txt", PLFreq);
+        layer4_0_conv2_weight_1[i] = input_plio::create("layer4_0_conv2_weight_1"+ std::to_string(i), plio_32_bits, "data_input/txt_weights/weight2.txt", PLFreq);
+        connect<>(layer4_0_conv1_weight_0[i].out[0], layer4_graph_0.input_weight_0_conv1[i]);
+        connect<>(layer4_0_conv2_weight_0[i].out[0], layer4_graph_0.input_weight_0_conv2[i]);
+        connect<>(layer4_0_conv1_weight_1[i].out[0], layer4_graph_0.input_weight_1_conv1[i]);
+        connect<>(layer4_0_conv2_weight_1[i].out[0], layer4_graph_0.input_weight_1_conv2[i]);
+        connect<>(layer4_0_down_weight[i].out[0], layer4_graph_0.input_weight_0_down[i]);
+        } 
+        for ( int i = 0; i < 3; i++)
+        {
+        layer4_1_conv1_weight_0[i] = input_plio::create("layer4_1_conv1_weight_0"+ std::to_string(i), plio_32_bits, "data_input/txt_weights/weight1.txt", PLFreq);
+        layer4_1_conv1_weight_1[i] = input_plio::create("layer4_1_conv1_weight_1"+ std::to_string(i), plio_32_bits, "data_input/txt_weights/weight1.txt", PLFreq);
+        
+        layer4_1_conv2_weight_0[i] = input_plio::create("layer4_1_conv2_weight_0"+ std::to_string(i), plio_32_bits, "data_input/txt_weights/weight2.txt", PLFreq);
+        layer4_1_conv2_weight_1[i] = input_plio::create("layer4_1_conv2_weight_1"+ std::to_string(i), plio_32_bits, "data_input/txt_weights/weight2.txt", PLFreq);
+        connect<>(layer4_1_conv1_weight_0[i].out[0], layer4_graph_1.input_weight_0_conv1[i]);
+        connect<>(layer4_1_conv1_weight_1[i].out[0], layer4_graph_1.input_weight_1_conv1[i]);
+        
+        connect<>(layer4_1_conv2_weight_0[i].out[0], layer4_graph_1.input_weight_0_conv2[i]);
+        connect<>(layer4_1_conv2_weight_1[i].out[0], layer4_graph_1.input_weight_1_conv2[i]);
+        } 
+        {
+        //layer4_input0 = input_plio::create("layer4_input0", plio_32_bits, "data_input/layer4datain.txt", PLFreq);
+        //layer4_out = output_plio::create("layer4_out", plio_32_bits, "data_output/layer4_out.txt", PLFreq);                
+        //connect<>(layer3_graph_1.output[0], layer4_graph_0.input_image);     
+        connect<>(layer3_graph_1.output[0], layer4_graph_0.input_image);    
+        connect<>(layer4_graph_0.output[0],layer4_graph_1.input_image);               
+        
+              
+        }
+
+        ////////////////////////layer5//////////////////////
+        //layer5_image = input_plio::create("layer5_image", plio_32_bits, "data_input/layer5datain.txt", PLFreq);
+        layer5_weight = input_plio::create("layer5_weight", plio_32_bits, "data_input/txt_weights/weight1.txt", PLFreq);
+        layer5_out = output_plio::create("layer5_out", plio_32_bits, "data_output/layer5_out.txt", PLFreq); 
+        connect<>(layer4_graph_1.output[0],head_graph.input_image);      
+        //connect<>(layer5_image.out[0], head_graph.input_image);
+        connect<>(layer5_weight.out[0], head_graph.input_weight);
+        connect<>(head_graph.output[0], layer5_out.in[0]);
+
+
+
+        ////////////////////////test//////////////////////
+
+        layer0_test_out = output_plio::create("layer0_test_out", plio_32_bits, "data_output/layer0_test_out.txt", PLFreq);
+        layer1_test_out = output_plio::create("layer1_test_out", plio_32_bits, "data_output/layer1_test_out.txt", PLFreq);
+        layer2_test_out = output_plio::create("layer2_test_out", plio_32_bits, "data_output/layer2_test_out.txt", PLFreq);
+        layer3_test_out = output_plio::create("layer3_test_out", plio_32_bits, "data_output/layer3_test_out.txt", PLFreq);
+        layer4_test_out = output_plio::create("layer4_test_out", plio_32_bits, "data_output/layer4_test_out.txt", PLFreq);
+        layer5_test_out = output_plio::create("layer5_test_out", plio_32_bits, "data_output/layer5_test_out.txt", PLFreq);
+
+        connect<>(stem_graph.output[0], layer0_test_out.in[0]);
+        connect<>(layer1_graph_1.output[0], layer1_test_out.in[0]);
+        connect<>(layer2_graph_1.output[0], layer2_test_out.in[0]);
+        connect<>(layer3_graph_1.output[0], layer3_test_out.in[0]);
+        connect<>(layer4_graph_1.output[0], layer4_test_out.in[0]);
+        connect<>(head_graph.output[0], layer5_test_out.in[0]);
+        
+	};
+}; // end of class
+
+
