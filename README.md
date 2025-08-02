@@ -45,7 +45,7 @@ This script converts `.tim` files into 64×64 SCD matrices.
 ### 3. Train the DNN Using the CSPB.ML.2022 Dataset
 
 ```bash
-cd DNN/studnet
+cd DNN/network/studnet
 ```
 
 Run the training notebook:

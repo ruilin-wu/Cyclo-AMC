@@ -47,8 +47,8 @@ void fam_stage2_1::run(
             input1 = vin;
         }
     }
-    constexpr bfloat16 ALPHA = 2.57639e-07;
-    constexpr bfloat16 BETA  = -0.306756;
+    constexpr bfloat16 ALPHA = 6.93232e-05;
+    constexpr bfloat16 BETA  = -0.296705;
 
     bfloat16* outptr0 = bout.data();
     bfloat16* outptr1 = outptr0 + 64;
