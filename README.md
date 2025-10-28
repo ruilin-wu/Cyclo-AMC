@@ -3,17 +3,17 @@
 # Cyclo-AMC
 
 This project implements the PyTorch pipeline of **Cyclo-AMC**.  
-It processes raw IQ samples to extract **Spectral Correlation Density (SCD)** features and trains deep neural networks for modulation recognition using the **CSPB.ML.2022** dataset.
+It processes raw I/Q samples to extract **Spectral Correlation Density (SCD)** features and trains deep neural networks for modulation recognition using the **CSPB.ML.2022** dataset.
 
 ---
 
 ## 1. SCD Matrix Generation 
 
-This notebook converts raw time-domain `.tim` IQ data into normalized **SCD matrices** that capture cyclostationary signatures unique to each modulation scheme.
+This notebook converts raw time-domain `.tim` I/Q data into normalized **SCD matrices** that capture cyclostationary signatures unique to each modulation scheme.
 
 ### Main Processing Steps
 1. **Data Loading**  
-   Reads `.tim` files containing 32,768-sample complex IQ frames, representing modulated signals under various SNR conditions and modulation types.
+   Reads `.tim` files containing 32,768-sample complex I/Q frames, representing modulated signals under various SNR conditions and modulation types.
 
 2. **Segmentation and Windowing**  
    Each frame is segmented into smaller overlapping segments (typically 512 samples) and multiplied by **Hamming** window to reduce spectral leakage.
