@@ -1,7 +1,6 @@
 
 
-```markdown
-# Cyclo-AMC: Deep Neural Network Pipeline for Modulation Classification
+# Cyclo-AMC
 
 This project implements the software-side pipeline of **Cyclostationary-based Automatic Modulation Classification (Cyclo-AMC)**.  
 It processes raw IQ samples to extract **Spectral Correlation Density (SCD)** features and trains deep neural networks for modulation recognition using the **CSPB.ML.2022** dataset.
