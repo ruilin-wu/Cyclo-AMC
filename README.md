@@ -19,7 +19,7 @@ This notebook converts raw time-domain `.tim` IQ data into normalized **SCD matr
    Each frame is segmented into smaller overlapping segments (typically 512 samples) and multiplied by **Hamming** window to reduce spectral leakage.
 
 3. **Spectral Correlation Estimation**  
-   Computes the **Spectral Correlation Density (SCD)** using the **Frequency-Shifted Averaged Multiplier (FAM)** algorithm.  
+   Computes the **Spectral Correlation Density (SCD)** using the **FFT Accumulation Method (FAM)** algorithm.  
    This step captures periodic correlations caused by modulation-induced cyclostationarity.
 
 4. **Normalization and Downsampling**  
